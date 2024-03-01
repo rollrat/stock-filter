@@ -44,11 +44,11 @@ fn load_market(market: StockMarket) -> eyre::Result<Vec<Stock>> {
     };
 
     let mut stocks: HashMap<String, Stock> =
-        load_stocks(format!("../data/{name}.txt"), StockMarket::Kospi)?
+        load_stocks(format!("./data/{name}.txt"), StockMarket::Kospi)?
             .into_iter()
             .map(|s| (s.code.clone(), s))
             .collect();
-    let trades = fs::read_dir(format!("../data/{name}"))
+    let trades = fs::read_dir(format!("./data/{name}"))
         .unwrap()
         .collect_vec();
 
