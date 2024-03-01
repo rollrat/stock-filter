@@ -27,6 +27,14 @@ impl StockDataLoader for DefaultStockDataLoader {
     }
 }
 
+pub struct KospiLoader {}
+
+impl StockDataLoader for KospiLoader {
+    fn load() -> eyre::Result<Vec<Stock>> {
+        Ok(load_market(StockMarket::Kospi)?)
+    }
+}
+
 fn load_market(market: StockMarket) -> eyre::Result<Vec<Stock>> {
     let (name, volume_position) = match market {
         StockMarket::Kospi => ("KOSPI", 5),
@@ -102,6 +110,11 @@ fn load_stock_trades(
             },
         );
     }
+
+    let trades = trades
+        .into_iter()
+        .filter(|(_, d)| d.open != 0f64 && d.close != 0f64)
+        .collect();
 
     Ok(trades)
 }

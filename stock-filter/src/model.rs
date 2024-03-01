@@ -19,11 +19,13 @@ pub struct Stock {
     pub trades: BTreeMap<NaiveDate, DaySeriesData>,
 }
 
+pub type Price = f64;
+
 #[derive(Default, Debug, Copy, Clone)]
 pub struct DaySeriesData {
-    pub open: f64,
-    pub high: f64,
-    pub low: f64,
-    pub close: f64,
+    pub open: Price,
+    pub high: Price,
+    pub low: Price,
+    pub close: Price,
     pub volume: usize,
 }
