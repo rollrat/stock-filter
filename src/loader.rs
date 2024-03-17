@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeMap, HashMap},
     fs::{self, File},
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, BufWriter, Write},
     path::Path,
 };
 
@@ -18,6 +18,22 @@ pub struct MarketData(Vec<Stock>);
 impl From<Vec<Stock>> for MarketData {
     fn from(value: Vec<Stock>) -> Self {
         Self(value)
+    }
+}
+
+impl MarketData {
+    pub fn load(path: impl AsRef<Path>) -> eyre::Result<MarketData> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        Ok(serde_json::from_reader(reader)?)
+    }
+
+    pub fn save(&self, path: impl AsRef<Path>) -> eyre::Result<()> {
+        let file = File::create(path)?;
+        let mut writer = BufWriter::new(file);
+        serde_json::to_writer(&mut writer, self)?;
+        writer.flush()?;
+        Ok(())
     }
 }
 
@@ -141,11 +157,26 @@ fn load_stock_trades(
 
 #[cfg(test)]
 mod tests {
-    use super::{DefaultStockDataLoader, StockDataLoader};
+    use super::{DefaultStockDataLoader, MarketData, StockDataLoader};
 
     #[test]
     fn unittest_default_stock_data_loader() -> eyre::Result<()> {
         DefaultStockDataLoader::load()?;
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "for ci"]
+    fn unittest_default_stock_data_serialize() -> eyre::Result<()> {
+        let market_data = DefaultStockDataLoader::load()?;
+        market_data.save("default_stock_data.json")?;
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "for ci"]
+    fn unittest_default_stock_data_deserialize() -> eyre::Result<()> {
+        let _ = MarketData::load("default_stock_data.json")?;
         Ok(())
     }
 }
