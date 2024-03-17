@@ -1,0 +1,25 @@
+name: job 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Download
+        run: |
+          python3 listing.py market-prices KOSPI
+          python3 listing.py market-prices KOSDAQ
+          python3 listing.py market-prices NASDAQ
