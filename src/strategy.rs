@@ -1,7 +1,7 @@
 use std::{
     borrow::BorrowMut,
     cmp::max,
-    collections::{BTreeMap, BTreeSet, HashSet},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
 };
 
 use chrono::NaiveDate;
@@ -10,7 +10,7 @@ use moving_min_max::{MovingMax, MovingMin};
 use std::ops::Bound::{Included, Unbounded};
 
 use crate::{
-    model::{DaySeriesData, Price},
+    model::{DaySeriesData, Price, Stock},
     utils::MovingAverage,
 };
 
@@ -272,6 +272,7 @@ impl StrategyEvaluator {
             .collect();
 
         for (date, act) in actions.into_iter().skip(first_buy) {
+            // println!("{}", avg.avg());
             match act {
                 Action::Buy(price) => {
                     let buy_stock = self.config.buy_factor;
@@ -319,6 +320,26 @@ impl StrategyEvaluator {
     }
 }
 
+//
+
+pub struct Account {
+    balance: Price,
+    stocks: HashMap<String, usize>,
+}
+
+pub struct StockInfo<'a> {
+    code: String,
+    past_trades: &'a BTreeMap<NaiveDate, DaySeriesData>,
+}
+
+pub trait LinearBuySellStrategy {
+    fn buy(&self, account: &Account, stock: &StockInfo) -> bool;
+}
+
+pub struct BackTester {}
+
+impl BackTester {}
+
 #[cfg(test)]
 mod tests {
     use crate::{
@@ -342,8 +363,8 @@ mod tests {
         };
 
         let folder = vec![
-            // LossSellRemover {}.boxed(),
-            // ConsecutiveBuyRemover {}.boxed(),
+            ConsecutiveBuyRemover {}.boxed(),
+            LossSellRemover {}.boxed(),
             // NeverSellStrategy {}.boxed(),
         ];
 

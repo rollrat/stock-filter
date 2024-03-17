@@ -6,32 +6,52 @@ use std::{
 };
 
 use chrono::NaiveDate;
+use derive_more::{Deref, IntoIterator};
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 
 use crate::model::{DaySeriesData, Stock, StockMarket};
 
+#[derive(Debug, Deref, Clone, Serialize, Deserialize, IntoIterator)]
+pub struct MarketData(Vec<Stock>);
+
+impl From<Vec<Stock>> for MarketData {
+    fn from(value: Vec<Stock>) -> Self {
+        Self(value)
+    }
+}
+
 pub trait StockDataLoader {
-    fn load() -> eyre::Result<Vec<Stock>>;
+    fn load() -> eyre::Result<MarketData>;
 }
 
 pub struct DefaultStockDataLoader {}
 
 impl StockDataLoader for DefaultStockDataLoader {
-    fn load() -> eyre::Result<Vec<Stock>> {
+    fn load() -> eyre::Result<MarketData> {
         Ok(vec![
             load_market(StockMarket::Kospi)?,
             load_market(StockMarket::Kosdaq)?,
             load_market(StockMarket::Nasdaq)?,
         ]
-        .concat())
+        .concat()
+        .into())
     }
 }
 
 pub struct KospiLoader {}
 
 impl StockDataLoader for KospiLoader {
-    fn load() -> eyre::Result<Vec<Stock>> {
-        Ok(load_market(StockMarket::Kospi)?)
+    fn load() -> eyre::Result<MarketData> {
+        Ok(load_market(StockMarket::Kospi)?.into())
+    }
+}
+
+pub struct NasdaqLoader {}
+
+impl StockDataLoader for NasdaqLoader {
+    fn load() -> eyre::Result<MarketData> {
+        Ok(load_market(StockMarket::Nasdaq)?.into())
     }
 }
 
